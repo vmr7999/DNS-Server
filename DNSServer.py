@@ -142,6 +142,9 @@ def run_dns_server():
                     if isinstance(answer_data, str):
                         rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, answer_data)]
                     else:
+                        if isinstance(answer_data[0], dns.rdata.Rdata):
+                            rdata_list = answer_data
+                    else:
                         rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, data) for data in answer_data]
                 for rdata in rdata_list:
                     rrset = dns.rrset.RRset(question.name, dns.rdataclass.IN, qtype)
