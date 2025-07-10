@@ -146,8 +146,7 @@ def run_dns_server():
                     rrset = dns.rrset.RRset(question.name, dns.rdataclass.IN, qtype)
                     rrset.add(rdata)
                     response.answer.append(rrset)
-            else:
-                response.set_rcode(dns.rcode.NXDOMAIN)
+            
 
             # Set the response flags
             response.flags |= 1 << 10
