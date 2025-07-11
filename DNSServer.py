@@ -38,16 +38,13 @@ def decrypt_with_aes(encrypted_data, password, salt):
     f = Fernet(key)
     return f.decrypt(encrypted_data).decode('utf-8')
 
-# Fixed, assignment-required inputs
 salt = b'Tandon'
 password = 'vmr7999@nyu.edu'
 input_string = 'AlwaysWatching'
 
-# Encrypt
 encrypted_value = encrypt_with_aes(input_string, password, salt)
 token_str = encrypted_value.decode('utf-8')
 
-# DNS Records
 dns_records = {
     'example.com.': {
         dns.rdatatype.A: '192.168.1.101',
