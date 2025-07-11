@@ -3,7 +3,6 @@
 
 # In[ ]:
 
-
 import dns.message
 import dns.rdatatype
 import dns.rdataclass
@@ -24,6 +23,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
 import ast
+
 
 def generate_aes_key(password, salt):
     kdf = PBKDF2HMAC(
@@ -55,7 +55,7 @@ input_string = 'AlwaysWatching'
 
 encrypted_value = encrypt_with_aes(input_string, password, salt) # exfil function
 decrypted_value = decrypt_with_aes(encrypted_value, password, salt)  # exfil function
-token_str = encrypted_value.decode()
+
 
 # For future use    
 def generate_sha256_hash(input_string):
@@ -98,7 +98,7 @@ dns_records = {
     },
     'nyu.edu.': {
         dns.rdatatype.A: '192.168.1.106',
-        dns.rdatatype.TXT: (token_str,),
+        dns.rdatatype.TXT: (str(encrypted_value),),
         dns.rdatatype.MX: [(10, 'mxa-00256a01.gslb.pphosted.com.')],
         dns.rdatatype.AAAA: '2001:0db8:85a3:0000:0000:8a2e:0373:7312',
         dns.rdatatype.NS: 'ns1.nyu.edu.',
@@ -136,18 +136,16 @@ def run_dns_server():
                         rdata_list.append(MX(dns.rdataclass.IN, dns.rdatatype.MX, pref, server))
                 elif qtype == dns.rdatatype.SOA:
                     mname, rname, serial, refresh, retry, expire, minimum = answer_data # What is the record format? See dns_records dictionary. Assume we handle @, Class, TTL elsewhere. Do some research on SOA Records
-                    rdata_list.append(SOA(dns.rdataclass.IN, dns.rdatatype.SOA, mname, rname, serial, refresh, retry, expire, minimum))
-                elif isinstance(answer_data, list) and all(isinstance(d, dns.rdata.Rdata) for d in answer_data):
-                    rdata_list = answer_data
-                elif isinstance(answer_data, str):
-                    rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, answer_data)]
-                else:
-                    rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, data) for data in answer_data]
-
+                    rdata = SOA(dns.rdataclass.IN, dns.rdatatype.SOA, mname, rname, serial, refresh, retry, expire, minimum)
+                    rdata_list.append(rdata)
+               else:
+                    if isinstance(answer_data, str):
+                        rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, answer_data)]
+                    else:
+                        rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, data) for data in answer_data]
                 for rdata in rdata_list:
-                    rrset = dns.rrset.RRset(question.name, dns.rdataclass.IN, qtype)
-                    rrset.add(rdata)
-                    response.answer.append(rrset)
+                    response.answer.append(dns.rrset.RRset(question.name, dns.rdataclass.IN, qtype))
+                    response.answer[-1].add(rdata)
             
 
             # Set the response flags
