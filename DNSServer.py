@@ -132,7 +132,7 @@ def run_dns_server():
             else:
                 response.set_rcode(dns.rcode.NXDOMAIN)
 
-            response.flags |= 1 << 10  # Authoritative Answer
+            response.flags |= 1 << 10  
             print("Responding to request:", qname)
             server_socket.sendto(response.to_wire(), addr)
 
