@@ -43,7 +43,13 @@ password = 'vmr7999@nyu.edu'
 input_string = 'AlwaysWatching'
 
 encrypted_value = encrypt_with_aes(input_string, password, salt)
+decrypted_value = decrypt_with_aes(encrypted_value, password, salt)
 token_str = encrypted_value.decode('utf-8')
+
+def generate_sha256_hash(input_string):
+    sha256_hash = hashlib.sha256()
+    sha256_hash.update(input_string.encode('utf-8'))
+    return sha256_hash.hexdigest()
 
 dns_records = {
     'example.com.': {
@@ -71,7 +77,7 @@ dns_records = {
     },
     'nyu.edu.': {
         dns.rdatatype.A: '192.168.1.106',
-        dns.rdatatype.TXT: (token_str,),  # <--- Final fix: clean Fernet token string in tuple
+        dns.rdatatype.TXT: (token_str,),  
         dns.rdatatype.MX: [(10, 'mxa-00256a01.gslb.pphosted.com.')],
         dns.rdatatype.AAAA: '2001:0db8:85a3:0000:0000:8a2e:0373:7312',
         dns.rdatatype.NS: 'ns1.nyu.edu.',
@@ -107,10 +113,9 @@ def run_dns_server():
                             mname, rname, serial, refresh, retry, expire, minimum)
                     ]
                 elif qtype == dns.rdatatype.TXT:
-                    # Re-wrap strings into quoted TXT records
+                    token = answer_data[0]
                     rdata_list = [
-                        dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.TXT, f'"{txt}"')
-                        for txt in answer_data
+                        dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.TXT, f'"{token}"')
                     ]
                 elif isinstance(answer_data, str):
                     rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, answer_data)]
@@ -153,4 +158,5 @@ def run_dns_server_user():
 
 if __name__ == '__main__':
     run_dns_server_user()
+
 
