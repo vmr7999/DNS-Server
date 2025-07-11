@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
 import dns.message
 import dns.rdatatype
 import dns.rdataclass
@@ -49,7 +44,7 @@ def decrypt_with_aes(encrypted_data, password, salt):
     decrypted_data = f.decrypt(encrypted_data) #call the Fernet decrypt method
     return decrypted_data.decode('utf-8')
 
-salt = b'Tandon' # Remember it should be a byte-object
+salt = 'Tandon'.encode('utf-8') # Remember it should be a byte-object
 password = 'vmr7999@nyu.edu'
 input_string = 'AlwaysWatching'
 
